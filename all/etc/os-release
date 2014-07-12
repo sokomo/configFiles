@@ -1,0 +1,4 @@
+NAME="GNU Linux"
+ID=gnulinux
+PRETTY_NAME="GNU/Linux"
+ANSI_COLOR="1;32"

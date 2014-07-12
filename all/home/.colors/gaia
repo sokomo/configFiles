@@ -1,0 +1,73 @@
+!GAIA
+!URxvt*background:        #6D9F99
+!URxvt.foreground:        #F9F9F9
+!URxvt.cursorColor:       #F9F9F9
+
+<<<<<<< HEAD
+!black FIXED
+*color0: #073642
+*color8: #16596A
+
+!red FIXED1
+*color1: #DC322F
+*color9: #F54844
+
+!green FIXED
+*color2: #B7CE42
+*color10: #BDE077
+
+!yellow FIXED
+=======
+!black
+*color0: #0F2328
+*color8: #073642
+
+!red
+*color1: #DC322F
+*color9: #F54844
+
+!green 
+*color2: #93C724
+*color10: #B7CE42
+
+!yellow
+>>>>>>> upstream/master
+*color3: #FFA905
+*color11: #F2B643
+
+!blue
+<<<<<<< HEAD
+!*color4: #003F9B
+*color4: #0070BE
+!*color12: #1584F5
+*color12: #657b83
+
+!magenta
+!*color5: #B7416E
+!*color13: #E16A98
+*color5: #d33682
+*color13: #DE6EA4
+
+!cyan
+*color6: #E37B06
+*color14: #42717B
+
+!white FIXED
+=======
+*color4: #00335D
+*color12: #16596A
+
+!magenta
+*color5: #ED2087
+*color13: #DE6EA4
+
+!cyan
+!*color6: #404040
+*color6: #605D5D
+*color14: #834394
+
+!white
+>>>>>>> upstream/master
+*color7: #F2F1F0
+*color15: #F9F9F9
+

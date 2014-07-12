@@ -1,0 +1,6 @@
+qemu-system-x86_64 -enable-kvm -localtime -m 512 -sdl -device cirrus-vga -device ich9-usb-ehci1 -usb -net nic -net user -hda 
+qemu-system-x86_64 --enable-kvm -drive file=${DISKIMG},if=virtio -m 2048 \
+-net nic,model=virtio -net user -cdrom ${WIN7IMG} \
+-drive file=${VIRTIMG},index=3,media=cdrom \
+-rtc base=localtime,clock=host -smp cores=2,threads=4 \
+-usbdevice tablet -soundhw ac97 -cpu host -vga vmware

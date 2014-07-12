@@ -1,0 +1,7 @@
+# Open dmenu
+"dmenu_run"
+   m:0x8 + c:9
+
+# Lock screen
+"xscreensaver-command -lock"
+   m:0x41 + c:46

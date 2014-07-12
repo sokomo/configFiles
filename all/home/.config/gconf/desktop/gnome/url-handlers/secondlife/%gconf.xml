@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<gconf>
+	<entry name="enabled" mtime="1393600682" type="bool" value="true"/>
+	<entry name="command" mtime="1393600682" type="string">
+		<stringvalue>/mnt/softs/gameLinux/Second_Life/etc/handle_secondlifeprotocol.sh &quot;%s&quot;</stringvalue>
+	</entry>
+</gconf>

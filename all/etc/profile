@@ -1,0 +1,98 @@
+# /etc/profile
+
+#Set our umask
+umask 022
+
+# Set our default path
+PATH="/usr/local/sbin:/usr/local/bin:/usr/bin"
+export PATH
+
+#export LC_ALL=en_US.UTF-8
+export LC_COLLATE=C
+export LANG=en_US.UTF-8@USD
+export CC="gcc" CXX="g++"
+
+export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/local/lib/pkgconfig
+
+# Written for Beyond Linux From Scratch
+# by James Robertson <jameswrobertson@earthlink.net>
+# modifications by Dagmar d'Surreal <rivyqntzne@pbzpnfg.arg>
+
+# System wide environment variables and startup programs.
+
+# System wide aliases and functions should go in /etc/bashrc.  Personal
+# environment variables and startup programs should go into
+# ~/.bash_profile.  Personal aliases and functions should go into
+# ~/.bashrc.
+
+# Functions to help us manage paths.  Second argument is the name of the
+# path variable to be modified (default: PATH)
+pathremove () {
+        local IFS=':'
+        local NEWPATH
+        local DIR
+        local PATHVARIABLE=${2:-PATH}
+        for DIR in ${!PATHVARIABLE} ; do
+                if [ "$DIR" != "$1" ] ; then
+                  NEWPATH=${NEWPATH:+$NEWPATH:}$DIR
+                fi
+        done
+        export $PATHVARIABLE="$NEWPATH"
+}
+
+pathprepend () {
+        pathremove $1 $2
+        local PATHVARIABLE=${2:-PATH}
+        export $PATHVARIABLE="$1${!PATHVARIABLE:+:${!PATHVARIABLE}}"
+}
+
+pathappend () {
+        pathremove $1 $2
+        local PATHVARIABLE=${2:-PATH}
+        export $PATHVARIABLE="${!PATHVARIABLE:+${!PATHVARIABLE}:}$1"
+}
+
+
+# Setup a red prompt for root and a green one for users.
+NORMAL="\[\e[0m\]"
+RED="\[\e[1;31m\]"
+GREEN="\[\e[1;32m\]"
+if [[ $EUID == 0 ]] ; then
+  PS1="$RED\u [ $NORMAL\w$RED ]# $NORMAL"
+else
+  PS1="$GREEN\u [ $NORMAL\w$GREEN ]\$ $NORMAL"
+fi
+
+# Load profiles from /etc/profile.d
+if test -d /etc/profile.d/; then
+	for profile in /etc/profile.d/*.sh; do
+		test -r "$profile" && . "$profile"
+	done
+	unset profile
+fi
+
+# Source global bash config
+if test "$PS1" && test "$BASH" && test -r /etc/bash.bashrc; then
+	. /etc/bash.bashrc
+fi
+
+# Now to clean up
+unset pathremove pathprepend pathappend
+
+# Termcap is outdated, old, and crusty, kill it.
+unset TERMCAP
+
+# Man is much better than us at figuring this out
+unset MANPATH
+BROWSER=/usr/bin/xdg-open
+
+# $XDG_CONFIG_HOME defines the base directory relative to which
+# user specific configuration files should be stored. If
+# $XDG_CONFIG_HOME is either not set or empty, a default equal to
+# $HOME/.config should be used.
+if test "x$XDG_CONFIG_HOME" = "x" ; then
+  XDG_CONFIG_HOME=$HOME/.config
+  export XDG_CONFIG_HOME
+fi
+[ -d "$XDG_CONFIG_HOME" ] || mkdir "$XDG_CONFIG_HOME"
+

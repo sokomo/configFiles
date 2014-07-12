@@ -1,0 +1,15 @@
+" Begin /etc/vimrc
+
+set nocompatible
+set backspace=2
+set expandtab
+set tabstop=4
+set shiftwidth=4
+" set nu
+
+syntax on
+if (&term == "iterm") || (&term == "putty")
+  set background=dark
+endif
+
+" End /etc/vimrc
