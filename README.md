@@ -1,4 +1,4 @@
 configFiles
 ===========
 
-My config files
+Config files for my architecture
