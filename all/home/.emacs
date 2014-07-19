@@ -1,3 +1,4 @@
+;; Auto complete package
 (add-to-list 'load-path "/usr/share/emacs/site-lisp/")
 (require 'auto-complete-config)
 (add-to-list 'ac-dictionary-directories "/usr/share/emacs/site-lisp/ac-dict")
@@ -70,14 +71,39 @@
 (global-set-key (kbd "s-RET") 'complete-tag)
 (lookup-key (current-global-map) (kbd "s-RET"))
 
-; Lua mode
+;; Lua mode
 (setq auto-mode-alist (cons '("\.lua$" . lua-mode) auto-mode-alist))
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
 
-; Python mode
+;; Python mode
 (autoload 'python-mode "python-mode.el" "Python mode." t)
 (setq auto-mode-alist (append '(("/*.\.py$" . python-mode)) auto-mode-alist))
 
+;; AucTex
+(load "auctex.el" nil t t)
+(require 'tex-mik)
+
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(setq-default TeX-master nil)
+
+;; You may prefer auto-fill-mode instead of visual-line-mode.
+(add-hook 'LaTeX-mode-hook 'auto-fill-mode)
+;(add-hook 'LaTeX-mode-hook 'visual-line-mode)
+(add-hook 'LaTeX-mode-hook 'flyspell-mode)
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+
+(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+(setq reftex-plug-into-AUCTeX t)
+
+; Work around with some tex buffer
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:family "Neep" :foundry "jmk" :slant normal :weight normal :height 113 :width normal))))
+ '(tex-verbatim ((t (:foundry "courier" :family "*"))) t))
 
 ; Unicode font
 ;(require 'unicode-fonts)
@@ -90,11 +116,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
-; '(ecb-options-version "2.40")
+ '(describe-char-unidata-list (quote (name old-name general-category decomposition decimal-digit-value digit-value numeric-value)))
  '(inhibit-startup-screen t))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
