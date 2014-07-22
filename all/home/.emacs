@@ -101,6 +101,22 @@
  (set-foreground-color "#D7D0C7")
  (set-background-color "#151515")
 
+
+;; Set transparent
+;(eval-when-compile (require 'cl))
+;(defun toggle-transparency ()
+; (interactive)
+; (if (/=
+;     (cadr (frame-parameter nil 'alpha))
+;     100)
+;     (set-frame-parameter nil 'alpha '(100 100))
+;     (set-frame-parameter nil 'alpha '(85 50))))
+;(global-set-key (kbd "C-c t") 'toggle-transparency)
+;;(set-frame-parameter (selected-frame) 'alpha '(<active> [<inactive>]))
+(set-frame-parameter (selected-frame) 'alpha '(75 50))
+(add-to-list 'default-frame-alist '(alpha 75 50))
+
+
 ; Work around with some tex buffer
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
