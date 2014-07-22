@@ -96,6 +96,11 @@
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 (setq reftex-plug-into-AUCTeX t)
 
+
+;; Set emacs color
+ (set-foreground-color "#D7D0C7")
+ (set-background-color "#151515")
+
 ; Work around with some tex buffer
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
