@@ -12,8 +12,9 @@ local naughty = require("naughty")
 local menubar = require("menubar")
 -- Vicious Library
 local vicious = require("vicious")
+-- BlingBling Library
+local blingbling = require("blingbling")
 
--- awful.util.spawn_with_shell("killall unagi; sleep 5; unagi &")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -40,11 +41,43 @@ do
 end
 -- }}}
 
+-- {{{ Get home variable
+
+local home = os.getenv("HOME")
+local confdir = home .. "/.config/awesome"
+local themes = confdir .. "/themes"
+
+local active_theme = themes .. "/bamboo"
+
+-- }}}
+
+
+
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
-beautiful.init("/usr/share/awesome/themes/default/theme.lua")
+--beautiful.init("/usr/share/awesome/themes/default/theme.lua")
+beautiful.init(active_theme.."/theme.lua")
 
+-- {{{ Customize theme
 theme.wallpaper = "/mnt/softs/luu_tam/Anime/sket_dance_flag_by_dreadlol-d525sle.png"
+
+--theme.bg_normal     = "#d4eee8aa"
+--theme.bg_focus      = "#d4eee8ee"
+--theme.bg_urgent     = "#ff0000ee"
+--theme.bg_minimize   = "#7aab9fee"
+--theme.bg_systray    = theme.bg_normal
+
+--theme.fg_normal     = "#535d6c"
+--theme.fg_focus      = "#535d6c"
+--theme.fg_urgent     = "#535d6c"
+--theme.fg_minimize  = "#535d6c"
+
+--theme.border_width  = "1"
+--theme.border_normal = "#D4EEE8"
+--theme.border_focus  = "#535d6c"
+
+
+-- }}}
 
 -- This is used later as the default terminal and editor to run.
 terminal = "terminator"
@@ -59,73 +92,172 @@ editor_cmd = terminal .. " -e " .. editor
 modkey = "Mod4"
 altkey = "Mod1"
 
+-- {{{ Create some self function
+
+function get_num_of_cores()
+   local files = {}
+   local tmpfiles = '/tmp/numofcores.txt'
+   os.execute('nproc > '..tmpfiles )
+   local f = io.open(tmpfiles)
+   if not f then
+-- Remove tmp file
+      os.execute('rm -f '..tmpfiles)
+      return 0
+   end
+--   local coresnum = f.read("*number")
+   local coresnum = f:read("*number")
+   f:close()
+-- Remove tmp file
+   os.execute('rm -f '..tmpfiles)
+   return coresnum
+end
 
 
--- {{{ Setup some vicious widget
+function get_mem_usage()
+   local memdata = {}
+   memdata = vicious.widgets.mem()
+   return "load: "..(memdata[1]).."% "..(memdata[2]).."MB/"..(memdata[3]).."MB"
+end
+
+
+-- }}}
+
+
+-- {{{ Setup some blingbling and vicious widget
 
 -- Date (textbox)
 -- Initialize widget
 datewidget = wibox.widget.textbox()
 -- Register widget
-vicious.register(datewidget, vicious.widgets.date, "%A, %F, %B, %R", 30)
+vicious.register(datewidget, vicious.widgets.date, "%A, %F, %B, %R ", 30)
+
+-- Clock widget
+clockwidget = blingbling.clock.japanese(" %m、%d、%w、<span color=\"#ffffff\">%H<span color=\""
+                                           ..blingbling.helpers.rgb(20,31,82)..
+                                           "\">時</span>%M<span color=\""
+                                           ..blingbling.helpers.rgb(20,31,82)..
+                                           "\">分</span> </span>")
+
+-- Calendar widget
+calendarwidget = blingbling.calendar({ widget = clockwidget })
+calendarwidget:set_link_to_external_calendar(true)
 
 
--- Memory usage (textbox)
 -- Initialize widget
-memwidgettb = wibox.widget.textbox()
--- Register widget
-vicious.register(memwidgettb, vicious.widgets.mem, " RAM: $1% ($2MB/$3MB) ", 13)
+memwidgetlabel = wibox.widget.textbox()
+memwidgetlabel:set_text(' RAM:')
 
+cpuwidgetlabel = wibox.widget.textbox()
+cpuwidgetlabel:set_text(' CPU:')
+
+
+--for i, v in ipairs(memdata) do
+--   naughty.notify({ preset = naughty.config.presets.critical,
+--                    title = "Test variable",
+--                    text = i.."   "..v
+--                    text = memdata[2]
+--                    text = "test"
+--                  })
+--end
 
 -- Memory usage (progressbar)
 -- Initialize widget
-memwidgetpb = awful.widget.progressbar()
+memwidgetpb = blingbling.line_graph({ height = 18,
+                                      width = 130,
+                                      show_text = true,
+                                      label = "load: 0% 0MB/0MB",
+                                      rounded_size = 0.3,
+                                      background_color = "#00000033",
+                                      graph_background_color = "#00000033",
+                                      graph_color = "#9d2b2aee",
+                                      graph_line_color = "#f19fa0ee"
+                                    })
 -- Progressbar properties
-memwidgetpb:set_width(20)
-memwidgetpb:set_height(10)
-memwidgetpb:set_vertical(true)
-memwidgetpb:set_background_color("#494B4F")
-memwidgetpb:set_border_color(nil)
-memwidgetpb:set_color({ type = "linear", from = { 0, 0 }, to = { 10,0 }, stops = { {0, "#AECF96"}, {0.5, "#88A175"}, 
-                    {1, "#FF5656"}}})
 -- Register widget
-vicious.register(memwidgetpb, vicious.widgets.mem, "$1", 13)
-
-
--- CPU usage (textbox)
--- Initialize widget
-cpuwidgettb = wibox.widget.textbox()
--- Register widget
-vicious.register(cpuwidgettb, vicious.widgets.cpu, " CPU: $1%")
+vicious.register(memwidgetpb, vicious.widgets.mem, "$1", 2)
+-- Use some timer trick for show mem usage
+memshowtimer = timer({ timeout = 2 })
+memshowtimer:connect_signal("timeout", function()
+                               memwidgetpb:set_label(get_mem_usage())
+                                       end)
+memshowtimer:start()
+                              
 
 
 -- CPU usage (graph)
 -- Initialize widget
-cpuwidgetgp = awful.widget.graph()
--- Graph properties
-cpuwidgetgp:set_width(40)
-cpuwidgetgp:set_background_color("#494B4F")
-cpuwidgetgp:set_color({ type = "linear", from = { 0, 0 }, to = { 10,0 }, stops = { {0, "#FF5656"}, {0.5, "#88A175"}, 
-                    {1, "#AECF96" }}})
+cpuwidgetgp = blingbling.line_graph({ height = 18,
+                                      width = 50,
+                                      show_text = true,
+                                      label = "load: $percent%",
+                                      rounded_size = 0.3,
+                                      background_color = "#00000033",
+                                      graph_background_color = "#00000033",
+                                      graph_color = "#9d2b2aee",
+                                      graph_line_color = "#f19fa0ee"
+                                    })
+
 -- Register widget
-vicious.register(cpuwidgetgp, vicious.widgets.cpu, "$1")
+vicious.register(cpuwidgetgp, vicious.widgets.cpu, "$1", 2)
+
+
+-- CPU cores usage (graph)
+num_of_cores = 0
+num_of_cores = get_num_of_cores()
+
+cores_graph_conf = { height = 18,
+                     width = 18,
+                     rounded_size = 0.3 ,
+                     show_text = true,
+                     label = "$percent%",
+                     background_color = "#00000033",
+                     graph_background_color = "#00000033",
+                     graph_color = "#9d2b2aee",
+                     graph_line_color = "#f19fa0ee"
+
+}
+cores_graphs = {}
+for i=1,num_of_cores do
+   cores_graphs[i] = blingbling.progress_graph( cores_graph_conf )
+   vicious.register(cores_graphs[i], vicious.widgets.cpu, "$"..(i+1).."", 2)
+end
 
 
 -- MPD Status (textbox)
 -- Initialize widget
-mpdwidget = wibox.widget.textbox()
+--mpdwidget = wibox.widget.textbox()
 -- Register widget
-vicious.register(mpdwidget, vicious.widgets.mpd,
-    function (mpdwidget, args)
-        if args["{state}"] == "Stop" then 
-            return " - "
-        else 
-            return args["{Artist}"]..' - '.. args["{Title}"]
-        end
-    end, 10)
+--vicious.register(mpdwidget, vicious.widgets.mpd,
+--    function (mpdwidget, args)
+--        if args["{state}"] == "Stop" then 
+--            return " - "
+--        else 
+--            return args["{Artist}"]..' - '.. args["{Title}"]
+--        end
+--    end, 10)
+
+
+-- Net widget
+--netwidget = blingbling.net({interface = "xenbr0", show_text = true})
+--netwidget:set_ippopup()
+
+-- Add some popup
+-- Add CPU popup
+-- Example with custom colors:
+blingbling.popups.htop(cpuwidgetgp, 
+                       { title_color = beautiful.notify_font_color_1 , 
+                         user_color = beautiful.notify_font_color_2 , 
+                         root_color = beautiful.notify_font_color_3 , 
+                         terminal =  terminal })
+
+
 
 
 -- }}}
+
+
+
+
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 local layouts =
@@ -257,23 +389,28 @@ for s = 1, screen.count() do
     mytasklist[s] = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, mytasklist.buttons)
 
     -- Create the wibox
-    mywibox[s] = awful.wibox({ position = "top", screen = s })
+    mywibox[s] = awful.wibox({ position = "top", height = 18, screen = s })
 
     -- Widgets that are aligned to the left
     local left_layout = wibox.layout.fixed.horizontal()
-    left_layout:add(mylauncher)
+--    left_layout:add(mylauncher)
     left_layout:add(mytaglist[s])
     left_layout:add(mypromptbox[s])
 
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
-    right_layout:add(memwidgettb)
+    right_layout:add(memwidgetlabel)
     right_layout:add(memwidgetpb)
-    right_layout:add(cpuwidgettb)
+    right_layout:add(cpuwidgetlabel)
     right_layout:add(cpuwidgetgp)
+    for i=1,num_of_cores do
+       right_layout:add(cores_graphs[i])
+    end
+--    right_layout:add(netwidget)
 --    right_layout:add(mytextclock)
-    right_layout:add(datewidget)
+--    right_layout:add(datewidget)
+    right_layout:add(clockwidget)
     right_layout:add(mylayoutbox[s])
 
     -- Now bring it all together (with the tasklist in the middle)
