@@ -10,8 +10,10 @@ local beautiful = require("beautiful")
 -- Notification library
 local naughty = require("naughty")
 local menubar = require("menubar")
+-- Vicious Library
+local vicious = require("vicious")
 
-awful.util.spawn_with_shell("killall unagi; sleep 5; unagi &")
+-- awful.util.spawn_with_shell("killall unagi; sleep 5; unagi &")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -42,9 +44,10 @@ end
 -- Themes define colours, icons, and wallpapers
 beautiful.init("/usr/share/awesome/themes/default/theme.lua")
 
+theme.wallpaper = "/mnt/softs/luu_tam/Anime/sket_dance_flag_by_dreadlol-d525sle.png"
 
 -- This is used later as the default terminal and editor to run.
-terminal = "gnome-terminal"
+terminal = "terminator"
 editor = os.getenv("EDITOR") or "emacs"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -54,6 +57,75 @@ editor_cmd = terminal .. " -e " .. editor
 -- I suggest you to remap Mod4 to another key using xmodmap or other tools.
 -- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod4"
+altkey = "Mod1"
+
+
+
+-- {{{ Setup some vicious widget
+
+-- Date (textbox)
+-- Initialize widget
+datewidget = wibox.widget.textbox()
+-- Register widget
+vicious.register(datewidget, vicious.widgets.date, "%A, %F, %B, %R", 30)
+
+
+-- Memory usage (textbox)
+-- Initialize widget
+memwidgettb = wibox.widget.textbox()
+-- Register widget
+vicious.register(memwidgettb, vicious.widgets.mem, " RAM: $1% ($2MB/$3MB) ", 13)
+
+
+-- Memory usage (progressbar)
+-- Initialize widget
+memwidgetpb = awful.widget.progressbar()
+-- Progressbar properties
+memwidgetpb:set_width(20)
+memwidgetpb:set_height(10)
+memwidgetpb:set_vertical(true)
+memwidgetpb:set_background_color("#494B4F")
+memwidgetpb:set_border_color(nil)
+memwidgetpb:set_color({ type = "linear", from = { 0, 0 }, to = { 10,0 }, stops = { {0, "#AECF96"}, {0.5, "#88A175"}, 
+                    {1, "#FF5656"}}})
+-- Register widget
+vicious.register(memwidgetpb, vicious.widgets.mem, "$1", 13)
+
+
+-- CPU usage (textbox)
+-- Initialize widget
+cpuwidgettb = wibox.widget.textbox()
+-- Register widget
+vicious.register(cpuwidgettb, vicious.widgets.cpu, " CPU: $1%")
+
+
+-- CPU usage (graph)
+-- Initialize widget
+cpuwidgetgp = awful.widget.graph()
+-- Graph properties
+cpuwidgetgp:set_width(40)
+cpuwidgetgp:set_background_color("#494B4F")
+cpuwidgetgp:set_color({ type = "linear", from = { 0, 0 }, to = { 10,0 }, stops = { {0, "#FF5656"}, {0.5, "#88A175"}, 
+                    {1, "#AECF96" }}})
+-- Register widget
+vicious.register(cpuwidgetgp, vicious.widgets.cpu, "$1")
+
+
+-- MPD Status (textbox)
+-- Initialize widget
+mpdwidget = wibox.widget.textbox()
+-- Register widget
+vicious.register(mpdwidget, vicious.widgets.mpd,
+    function (mpdwidget, args)
+        if args["{state}"] == "Stop" then 
+            return " - "
+        else 
+            return args["{Artist}"]..' - '.. args["{Title}"]
+        end
+    end, 10)
+
+
+-- }}}
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 local layouts =
@@ -83,10 +155,14 @@ end
 
 -- {{{ Tags
 -- Define a tag table which hold all screen tags.
-tags = {}
+tags = { 
+  names = { "Ƹ̵̡Ӝ̵̨̄Ʒ" , "♥❄♥" , "☆" , "( ≧Д≦)" , "(ノಠ益ಠ)ノ彡┻━┻" } ,
+  layout = { layouts[1], layouts[1], layouts[2] , layouts[2], layouts[2] }
+}
+
 for s = 1, screen.count() do
     -- Each screen has its own tag table.
-    tags[s] = awful.tag({ 1, 2, 3, 4, 5, 6, 7, 8, 9 }, s, layouts[1])
+    tags[s] = awful.tag( tags.names ,s, tags.layout )
 end
 -- }}}
 
@@ -113,7 +189,7 @@ menubar.utils.terminal = terminal -- Set the terminal for applications that requ
 
 -- {{{ Wibox
 -- Create a textclock widget
-mytextclock = awful.widget.textclock()
+-- mytextclock = awful.widget.textclock()
 
 -- Create a wibox for each screen and add it
 mywibox = {}
@@ -192,7 +268,12 @@ for s = 1, screen.count() do
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
-    right_layout:add(mytextclock)
+    right_layout:add(memwidgettb)
+    right_layout:add(memwidgetpb)
+    right_layout:add(cpuwidgettb)
+    right_layout:add(cpuwidgetgp)
+--    right_layout:add(mytextclock)
+    right_layout:add(datewidget)
     right_layout:add(mylayoutbox[s])
 
     -- Now bring it all together (with the tasklist in the middle)
@@ -275,17 +356,21 @@ globalkeys = awful.util.table.join(
     -- Menubar
     awful.key({ modkey }, "p", function() menubar.show() end),
 
-    awful.key({ "Mod1" }, "Tab", function ()
+    awful.key({ altkey }, "Tab", function ()
        -- If you want to always position the menu on the same place set coordinates
-       awful.menu.menu_keys.down = { "Down", "Alt_L" }
-       awful.menu:clients({theme = { width = 250 }}, { keygrabber=true, coords={x=525, y=330} })
+--       awful.menu.menu_keys.down = { "Down", "Alt_L" }
+--       awful.menu:clients({theme = { width = 250 }}, { keygrabber=true, coords={x=525, y=330} })
+        for c in awful.client.iterate(function (x) return true end) do
+            client.focus = c
+            client.focus:raise()
+        end
     end)
 
 )
 
 clientkeys = awful.util.table.join(
     awful.key({ modkey,           }, "f",      function (c) c.fullscreen = not c.fullscreen  end),
-    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
+--    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end),
     awful.key({ modkey,           }, "o",      awful.client.movetoscreen                        ),
@@ -396,6 +481,8 @@ awful.rules.rules = {
       properties = { floating = true } },
     { rule = { class = "gimp" },
       properties = { floating = true } },
+    { rule = { class = "vlc" },
+      properties = { floating = true } },
     -- Set Firefox to always map on tags number 2 of screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { tag = tags[1][2] } },
@@ -474,4 +561,5 @@ end)
 
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
+
 -- }}}
